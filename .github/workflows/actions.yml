@@ -14,9 +14,6 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-
-      # Run linting. This example uses the Maven Checkstyle plugin.
-      # Ensure your pom.xml configures checkstyle if you use this step.
       - name: Lint Code with Checkstyle
         run: mvn checkstyle:check
 
@@ -49,10 +46,8 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      # Build the Spring Boot application (skipping tests because they've already run)
       - name: Build Application
         run: mvn clean package -DskipTests
 
-      # Deployment step (update this with your actual deployment commands)
       - name: Deploy Application
         run: echo "Deploying application... (insert your deployment commands here)"
