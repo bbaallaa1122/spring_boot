@@ -14,22 +14,31 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+
       - name: Lint Code with Checkstyle
         run: mvn checkstyle:check
+
       - name: Send Email on Failure
-        if: always()
+        if: always()  # This step always runs, regardless of previous steps' success or failure
         run: |
-          curl.exe -L -o mailsend-go.exe "https://github.com/muquit/mailsend-go/releases/latest/download/mailsend-go-win64.exe"
-          mailsend-go -smtp $SMTP_SERVER -port $SMTP_PORT -auth -user $SMTP_USER -pass $SMTP_PASS \
-            -from $SMTP_USER -to $TO_EMAIL -sub "Test Failed in GitHub Actions" \
-            -M "The tests failed in GitHub Actions. Please check the logs."
+          if ($env.GITHUB_JOB_STATUS -eq 'failure') {
+            if (Test-Path ".\mailsend-go.exe") {
+              .\mailsend-go.exe -smtp $SMTP_SERVER -port $SMTP_PORT -auth -user $SMTP_USER -pass $SMTP_PASS `
+                -from $SMTP_USER -to $TO_EMAIL -sub "Lint Check Failed in GitHub Actions" `
+                -M "The lint check failed in GitHub Actions. Please check the logs."
+            } else {
+              echo "mailsend-go.exe not found!"
+              exit 1
+            }
+          }
+        shell: pwsh
         env:
+          GITHUB_JOB_STATUS: ${{ job.status }}
           SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           TO_EMAIL: ${{ secrets.TO_EMAIL }}
-
 
   test:
     needs: lint
@@ -46,14 +55,23 @@ jobs:
 
       - name: Run Tests
         run: mvn test
+
       - name: Send Email on Failure
         if: always()
         run: |
-          curl.exe -L -o mailsend-go.exe "https://github.com/muquit/mailsend-go/releases/latest/download/mailsend-go-win64.exe"
-          mailsend-go -smtp $SMTP_SERVER -port $SMTP_PORT -auth -user $SMTP_USER -pass $SMTP_PASS \
-            -from $SMTP_USER -to $TO_EMAIL -sub "Test Failed in GitHub Actions" \
-            -M "The tests failed in GitHub Actions. Please check the logs."
+          if ($env.GITHUB_JOB_STATUS -eq 'failure') {
+            if (Test-Path ".\mailsend-go.exe") {
+              .\mailsend-go.exe -smtp $SMTP_SERVER -port $SMTP_PORT -auth -user $SMTP_USER -pass $SMTP_PASS `
+                -from $SMTP_USER -to $TO_EMAIL -sub "Test Failed in GitHub Actions" `
+                -M "The tests failed in GitHub Actions. Please check the logs."
+            } else {
+              echo "mailsend-go.exe not found!"
+              exit 1
+            }
+          }
+        shell: pwsh
         env:
+          GITHUB_JOB_STATUS: ${{ job.status }}
           SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
           SMTP_USER: ${{ secrets.SMTP_USER }}
@@ -72,21 +90,31 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+
       - name: Build Application
         run: mvn clean package -DskipTests
+
       - name: Deploy Application
         run: echo "Deploying application... (insert your deployment commands here)"
+
       - name: Send Email on Failure
         if: always()
         run: |
-         curl.exe -L -o mailsend-go.exe "https://github.com/muquit/mailsend-go/releases/latest/download/mailsend-go-win64.exe"
-          mailsend-go -smtp $SMTP_SERVER -port $SMTP_PORT -auth -user $SMTP_USER -pass $SMTP_PASS \
-            -from $SMTP_USER -to $TO_EMAIL -sub "Test Failed in GitHub Actions" \
-            -M "The tests failed in GitHub Actions. Please check the logs."
+          if ($env.GITHUB_JOB_STATUS -eq 'failure') {
+            if (Test-Path ".\mailsend-go.exe") {
+              .\mailsend-go.exe -smtp $SMTP_SERVER -port $SMTP_PORT -auth -user $SMTP_USER -pass $SMTP_PASS `
+                -from $SMTP_USER -to $TO_EMAIL -sub "Deployment Failed in GitHub Actions" `
+                -M "The deployment failed in GitHub Actions. Please check the logs."
+            } else {
+              echo "mailsend-go.exe not found!"
+              exit 1
+            }
+          }
+        shell: pwsh
         env:
+          GITHUB_JOB_STATUS: ${{ job.status }}
           SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           TO_EMAIL: ${{ secrets.TO_EMAIL }}
-
