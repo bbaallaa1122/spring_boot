@@ -45,9 +45,7 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-
       - name: Build Application
         run: mvn clean package -DskipTests
-
       - name: Deploy Application
         run: echo "Deploying application... (insert your deployment commands here)"
