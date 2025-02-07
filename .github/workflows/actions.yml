@@ -19,7 +19,7 @@ jobs:
       - name: Send Email on Failure
         if: always()
         run: |
-          sudo apt-get install -y mailsend-go
+          Invoke-WebRequest -Uri "https://github.com/muquit/mailsend-go/releases/latest/download/mailsend-go-win64.exe" -OutFile "mailsend-go.exe"
           mailsend-go -smtp $SMTP_SERVER -port $SMTP_PORT -auth -user $SMTP_USER -pass $SMTP_PASS \
             -from $SMTP_USER -to $TO_EMAIL -sub "Test Failed in GitHub Actions" \
             -M "The tests failed in GitHub Actions. Please check the logs."
@@ -49,7 +49,7 @@ jobs:
       - name: Send Email on Failure
         if: always()
         run: |
-          sudo apt-get install -y mailsend-go
+          Invoke-WebRequest -Uri "https://github.com/muquit/mailsend-go/releases/latest/download/mailsend-go-win64.exe" -OutFile "mailsend-go.exe"
           mailsend-go -smtp $SMTP_SERVER -port $SMTP_PORT -auth -user $SMTP_USER -pass $SMTP_PASS \
             -from $SMTP_USER -to $TO_EMAIL -sub "Test Failed in GitHub Actions" \
             -M "The tests failed in GitHub Actions. Please check the logs."
@@ -79,7 +79,7 @@ jobs:
       - name: Send Email on Failure
         if: always()
         run: |
-          sudo apt-get install -y mailsend-go
+          Invoke-WebRequest -Uri "https://github.com/muquit/mailsend-go/releases/latest/download/mailsend-go-win64.exe" -OutFile "mailsend-go.exe"
           mailsend-go -smtp $SMTP_SERVER -port $SMTP_PORT -auth -user $SMTP_USER -pass $SMTP_PASS \
             -from $SMTP_USER -to $TO_EMAIL -sub "Test Failed in GitHub Actions" \
             -M "The tests failed in GitHub Actions. Please check the logs."
