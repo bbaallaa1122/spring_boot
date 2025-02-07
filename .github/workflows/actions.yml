@@ -16,6 +16,20 @@ jobs:
           java-version: '17'
       - name: Lint Code with Checkstyle
         run: mvn checkstyle:check
+      - name: Send Email on Failure
+        if: always()
+        run: |
+          sudo apt-get install -y mailsend-go
+          mailsend-go -smtp $SMTP_SERVER -port $SMTP_PORT -auth -user $SMTP_USER -pass $SMTP_PASS \
+            -from $SMTP_USER -to $TO_EMAIL -sub "Test Failed in GitHub Actions" \
+            -M "The tests failed in GitHub Actions. Please check the logs."
+        env:
+          SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          TO_EMAIL: ${{ secrets.TO_EMAIL }}
+
 
   test:
     needs: lint
@@ -32,6 +46,19 @@ jobs:
 
       - name: Run Tests
         run: mvn test
+      - name: Send Email on Failure
+        if: always()
+        run: |
+          sudo apt-get install -y mailsend-go
+          mailsend-go -smtp $SMTP_SERVER -port $SMTP_PORT -auth -user $SMTP_USER -pass $SMTP_PASS \
+            -from $SMTP_USER -to $TO_EMAIL -sub "Test Failed in GitHub Actions" \
+            -M "The tests failed in GitHub Actions. Please check the logs."
+        env:
+          SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          TO_EMAIL: ${{ secrets.TO_EMAIL }}
 
   deploy:
     needs: test
@@ -49,3 +76,17 @@ jobs:
         run: mvn clean package -DskipTests
       - name: Deploy Application
         run: echo "Deploying application... (insert your deployment commands here)"
+      - name: Send Email on Failure
+        if: always()
+        run: |
+          sudo apt-get install -y mailsend-go
+          mailsend-go -smtp $SMTP_SERVER -port $SMTP_PORT -auth -user $SMTP_USER -pass $SMTP_PASS \
+            -from $SMTP_USER -to $TO_EMAIL -sub "Test Failed in GitHub Actions" \
+            -M "The tests failed in GitHub Actions. Please check the logs."
+        env:
+          SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          TO_EMAIL: ${{ secrets.TO_EMAIL }}
+
