@@ -19,7 +19,7 @@ jobs:
         run: mvn checkstyle:check
 
       - name: Send Email on Failure
-        if: always()  # This step always runs, regardless of previous steps' success or failure
+        if: always() 
         run: |
           if ($env.GITHUB_JOB_STATUS -eq 'failure') {
             if (Test-Path ".\mailsend-go.exe") {
