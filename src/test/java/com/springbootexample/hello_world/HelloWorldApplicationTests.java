@@ -10,5 +10,6 @@ class HelloWorldApplicationTests {
 
     @Test
     void contextLoads() {
+        fail("Forcing test failure in GitHub Actions. ");
     }
 }

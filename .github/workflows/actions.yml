@@ -1,119 +1,21 @@
-name: test_deploy
+name: Run JAR from Google Drive
 
-on: push
+on:  
+  push:   
+  workflow_dispatch:  
 
-jobs:
-  lint:
+jobs:  
+  run-jar:  
     runs-on: windows-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+    steps:  
+      - name: Checkout Repository  
+        uses: actions/checkout@v4  
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          distribution: temurin
-          java-version: '17'
+      - name: Download JAR from Google Drive  
+        run: |  
+          powershell -Command "Invoke-WebRequest -Uri 'https://drive.google.com/file/d/1djtkX3COrLDCGTPPhQ0TBwyYKADDeZzC/view?usp=sharing' -OutFile 'app.jar'"
+      - name: Make JAR Executable  
+        run: powershell -Command "chmod +x app.jar"  
 
-      - name: Lint Code with Checkstyle
-        run: mvn checkstyle:check
-
-      - name: Send Email on Failure
-        if: always() 
-        run: |
-          if ($env.GITHUB_JOB_STATUS -eq 'failure') {
-            if (Test-Path ".\mailsend-go.exe") {
-              .\mailsend-go.exe -smtp $SMTP_SERVER -port $SMTP_PORT -auth -user $SMTP_USER -pass $SMTP_PASS `
-                -from $SMTP_USER -to $TO_EMAIL -sub "Lint Check Failed in GitHub Actions" `
-                -M "The lint check failed in GitHub Actions. Please check the logs."
-            } else {
-              echo "mailsend-go.exe not found!"
-              exit 1
-            }
-          }
-        shell: pwsh
-        env:
-          GITHUB_JOB_STATUS: ${{ job.status }}
-          SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
-          SMTP_PORT: ${{ secrets.SMTP_PORT }}
-          SMTP_USER: ${{ secrets.SMTP_USER }}
-          SMTP_PASS: ${{ secrets.SMTP_PASS }}
-          TO_EMAIL: ${{ secrets.TO_EMAIL }}
-  test:
-    needs: lint
-    runs-on: windows-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          distribution: temurin
-          java-version: '17'
-
-      - name: Run Tests
-        run: mvn test
-
-      - name: Send Email on Failure
-        if: always()
-        run: |
-          if ($env.GITHUB_JOB_STATUS -eq 'failure') {
-            if (Test-Path ".\mailsend-go.exe") {
-              .\mailsend-go.exe -smtp $SMTP_SERVER -port $SMTP_PORT -auth -user $SMTP_USER -pass $SMTP_PASS `
-                -from $SMTP_USER -to $TO_EMAIL -sub "Test Failed in GitHub Actions" `
-                -M "The tests failed in GitHub Actions. Please check the logs."
-            } else {
-              echo "mailsend-go.exe not found!"
-              exit 1
-            }
-          }
-        shell: pwsh
-        env:
-          GITHUB_JOB_STATUS: ${{ job.status }}
-          SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
-          SMTP_PORT: ${{ secrets.SMTP_PORT }}
-          SMTP_USER: ${{ secrets.SMTP_USER }}
-          SMTP_PASS: ${{ secrets.SMTP_PASS }}
-          TO_EMAIL: ${{ secrets.TO_EMAIL }}
-
-  deploy:
-    needs: test
-    runs-on: windows-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          distribution: temurin
-          java-version: '17'
-
-      - name: Build Application
-        run: mvn clean package -DskipTests
-
-      - name: Deploy Application
-        run: echo "Deploying application... (insert your deployment commands here)"
-
-      - name: Send Email on Failure
-        if: always()
-        run: |
-          if ($env.GITHUB_JOB_STATUS -eq 'failure') {
-            if (Test-Path ".\mailsend-go.exe") {
-              .\mailsend-go.exe -smtp $SMTP_SERVER -port $SMTP_PORT -auth -user $SMTP_USER -pass $SMTP_PASS `
-                -from $SMTP_USER -to $TO_EMAIL -sub "Deployment Failed in GitHub Actions" `
-                -M "The deployment failed in GitHub Actions. Please check the logs."
-            } else {
-              echo "mailsend-go.exe not found!"
-              exit 1
-            }
-          }
-        shell: pwsh
-        env:
-          GITHUB_JOB_STATUS: ${{ job.status }}
-          SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
-          SMTP_PORT: ${{ secrets.SMTP_PORT }}
-          SMTP_USER: ${{ secrets.SMTP_USER }}
-          SMTP_PASS: ${{ secrets.SMTP_PASS }}
-          TO_EMAIL: ${{ secrets.TO_EMAIL }}
+      - name: Run JAR File  
+        run: java -jar app.jar
