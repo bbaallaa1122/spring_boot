@@ -25,3 +25,20 @@ jobs:
           Start-Process -NoNewWindow -FilePath "java" -ArgumentList "-jar NoCodeBDD-V1-3-29.jar" 
           Start-Sleep -Seconds 60
           Stop-Process -Name "java" -Force
+  runi-jar:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Mockoon CLI
+        run: npm install -g @mockoon/cli
+
+      - name: Start Mockoon Mock APIs
+        run: |
+          nohup mockoon-cli start --data ./Mockoon/ipt/IPTCoreMockService.json > mockoon_ipt.log 2>&1 &
+          nohup mockoon-cli start --data ./Mockoon/ai-search/clientAiSearchService.json > mockoon_ai.log 2>&1 &
+          
+      - name: Verify Mockoon Processes
+        run: ps aux | grep mockoon
+
