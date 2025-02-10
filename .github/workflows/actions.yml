@@ -36,8 +36,8 @@ jobs:
 
       - name: Start Mockoon Mock APIs
         run: |
-          Start-Process -NoNewWindow -FilePath "mockoon-cli" -ArgumentList "start --data ./Mockoon/ipt/IPTCoreMockService.json"
-          Start-Process -NoNewWindow -FilePath "mockoon-cli" -ArgumentList "start --data ./Mockoon/ai-search/clientAiSearchService.json"
-
+          nohup mockoon-cli start --data ./Mockoon/ipt/IPTCoreMockService.json > mockoon_ipt.log 2>&1 &
+          nohup mockoon-cli start --data ./Mockoon/ai-search/clientAiSearchService.json > mockoon_ai.log 2>&1 &
+          
       - name: Verify Mockoon Processes
         run: powershell -Command "Get-Process | Where-Object { $_.ProcessName -match 'mockoon' }"
