@@ -16,10 +16,6 @@ jobs:
 
       - name: Download JAR from Google Drive
         run: gdown "https://drive.google.com/uc?id=1djtkX3COrLDCGTPPhQ0TBwyYKADDeZzC" -O NoCodeBDD-V1-3-29.jar
-
-      - name: Make JAR Executable  
-        run: powershell -Command "chmod +x NoCodeBDD-V1-3-29.jar"  
-
       - name: Run JAR File with Timeout
         run: |
           Start-Process -NoNewWindow -FilePath "java" -ArgumentList "-jar NoCodeBDD-V1-3-29.jar" 
