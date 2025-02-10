@@ -20,5 +20,8 @@ jobs:
       - name: Make JAR Executable  
         run: powershell -Command "chmod +x NoCodeBDD-V1-3-29.jar"  
 
-      - name: Run JAR File  
-        run: java -jar NoCodeBDD-V1-3-29.jar
+      - name: Run JAR File with Timeout
+        run: |
+          Start-Process -NoNewWindow -FilePath "java" -ArgumentList "-jar NoCodeBDD-V1-3-29.jar" 
+          Start-Sleep -Seconds 60
+          Stop-Process -Name "java" -Force
