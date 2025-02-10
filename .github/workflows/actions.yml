@@ -13,9 +13,9 @@ jobs:
 
       - name: Download JAR from Google Drive  
         run: |  
-          powershell -Command "Invoke-WebRequest -Uri 'https://drive.google.com/file/d/1djtkX3COrLDCGTPPhQ0TBwyYKADDeZzC/view?usp=sharing' -OutFile 'app.jar'"
+          powershell -Command "Invoke-WebRequest -Uri 'https://drive.google.com/file/d/1djtkX3COrLDCGTPPhQ0TBwyYKADDeZzC/view?usp=sharing' -OutFile 'NoCodeBDD-V1-3-29.jar'"
       - name: Make JAR Executable  
-        run: powershell -Command "chmod +x app.jar"  
+        run: powershell -Command "chmod +x NoCodeBDD-V1-3-29.jar"  
 
       - name: Run JAR File  
-        run: java -jar app.jar
+        run: java -jar NoCodeBDD-V1-3-29.jar
