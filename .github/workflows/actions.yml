@@ -11,9 +11,12 @@ jobs:
       - name: Checkout Repository  
         uses: actions/checkout@v4  
 
-      - name: Download JAR from Google Drive  
-        run: |  
-          powershell -Command "Invoke-WebRequest -Uri 'https://drive.google.com/file/d/1djtkX3COrLDCGTPPhQ0TBwyYKADDeZzC/view?usp=sharing' -OutFile 'NoCodeBDD-V1-3-29.jar'"
+      - name: Install gdown
+        run: pip install gdown
+
+      - name: Download JAR from Google Drive
+        run: gdown "https://drive.google.com/uc?id=1djtkX3COrLDCGTPPhQ0TBwyYKADDeZzC" -O NoCodeBDD-V1-3-29.jar
+
       - name: Make JAR Executable  
         run: powershell -Command "chmod +x NoCodeBDD-V1-3-29.jar"  
 
