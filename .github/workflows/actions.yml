@@ -1,57 +1,31 @@
-name: Run JAR and Send API Request
+name: Setup PostgreSQL Database on Windows
 
 on:
   push:
   workflow_dispatch:
 
 jobs:
-  run-jar-and-request:
+  setup-postgres:
     runs-on: windows-latest
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Install gdown
-        run: pip install gdown
+      - name: Install PostgreSQL using Chocolatey
+        run: |
+          choco install postgresql -y --params "/Password:postgres"
         shell: powershell
 
-      - name: Download JAR from Google Drive
-        run: |
-          gdown "https://drive.google.com/uc?id=1djtkX3COrLDCGTPPhQ0TBwyYKADDeZzC" -O NoCodeBDD-V1-3-29.jar
+      - name: Wait for PostgreSQL to start
+        run: Start-Sleep -Seconds 30
         shell: powershell
 
-      - name: Start JAR File (API Server)
+      - name: Create Database client_protal
         run: |
-          Write-Host "Starting the JAR file..."
-          Start-Process -NoNewWindow -FilePath "java" -ArgumentList "-jar NoCodeBDD-V1-3-29.jar"
-          Write-Host "Waiting 30 seconds for the server to start..."
-          Start-Sleep -Seconds 30
+          $env:PGPASSWORD = "postgres"
+          & "C:\Program Files\PostgreSQL\14\bin\psql.exe" -U postgres -c "CREATE DATABASE \"client_protal\";"
         shell: powershell
 
-      - name: Send API Request using Python Requests
+      - name: List Databases
         run: |
-          $pythonScript = @"
-          import requests
-          import time
-
-          api_url = "http://localhost:56244/driverVersion"
-          print(f"Sending request to: {api_url}")
-
-          time.sleep(5)  # Wait for the API to stabilize
-          try:
-              response = requests.get(api_url)
-              print("API Response:")
-              print(response.text)
-          except Exception as e:
-              print(f"Failed to reach API: {e}")
-          "@
-          $pythonScript | Out-File -Encoding utf8 script.py
-          python script.py
-        shell: powershell
-
-      - name: Stop JAR File
-        run: |
-          Write-Host "Stopping the JAR file..."
-          Stop-Process -Name "java" -Force
+          $env:PGPASSWORD = "postgres"
+          & "C:\Program Files\PostgreSQL\14\bin\psql.exe" -U postgres -c "\l"
         shell: powershell
