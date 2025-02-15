@@ -18,14 +18,20 @@ jobs:
         run: Start-Sleep -Seconds 30
         shell: powershell
 
+      - name: Test Connection to PostgreSQL
+        run: |
+          $env:PGPASSWORD = "postgres"
+          & "C:\Program Files\PostgreSQL\14\bin\psql.exe" -h localhost -U postgres -c "SELECT 1;"
+        shell: powershell
+
       - name: Create Database client_protal
         run: |
           $env:PGPASSWORD = "postgres"
-          & "C:\Program Files\PostgreSQL\14\bin\psql.exe" -U postgres -c "CREATE DATABASE \"client_protal\";"
+          & "C:\Program Files\PostgreSQL\14\bin\psql.exe" -h localhost -U postgres -c "CREATE DATABASE \"client_protal\";"
         shell: powershell
 
       - name: List Databases
         run: |
           $env:PGPASSWORD = "postgres"
-          & "C:\Program Files\PostgreSQL\14\bin\psql.exe" -U postgres -c "\l"
+          & "C:\Program Files\PostgreSQL\14\bin\psql.exe" -h localhost -U postgres -c "\l"
         shell: powershell
