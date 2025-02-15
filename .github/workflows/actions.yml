@@ -74,3 +74,7 @@ jobs:
       - name: Set Password for Postgres User
         run: |
           sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'postgres';"
+
+      - name: Create Database \"client portal\"
+        run: |
+          sudo -u postgres psql -c "CREATE DATABASE \"client portal\";"
