@@ -21,6 +21,13 @@ jobs:
           Start-Process -NoNewWindow -FilePath "java" -ArgumentList "-jar NoCodeBDD-V1-3-29.jar" 
           Start-Sleep -Seconds 60
           Stop-Process -Name "java" -Force
+      - name: Send API Request to Website
+        run: |
+          $apiUrl = "http://localhost:8080/api/data"  # Change to your actual API endpoint.
+          Write-Host "Sending API request to $apiUrl..."
+          $response = Invoke-RestMethod -Uri $apiUrl
+          Write-Host "API Response: $response"
+        shell: powershell
   runi-jar:
     runs-on: windows-latest
     steps:
