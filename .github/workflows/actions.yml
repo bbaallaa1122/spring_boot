@@ -1,46 +1,98 @@
-name: Run JAR from Google Drive
+name: Run JAR and Send API Request via ChromeDriver
 
-on:  
-  push:   
-  workflow_dispatch:  
+on:
+  push:
+  workflow_dispatch:
 
-jobs:  
-  run-jar:  
+jobs:
+  run-jar-and-chrome:
     runs-on: windows-latest
-    steps:  
-      - name: Checkout Repository  
-        uses: actions/checkout@v4  
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
       - name: Install gdown
         run: pip install gdown
 
       - name: Download JAR from Google Drive
         run: gdown "https://drive.google.com/uc?id=1djtkX3COrLDCGTPPhQ0TBwyYKADDeZzC" -O NoCodeBDD-V1-3-29.jar
-      - name: Run JAR File with Timeout
+
+      - name: Verify Google Chrome Installation
         run: |
-          Start-Process -NoNewWindow -FilePath "java" -ArgumentList "-jar NoCodeBDD-V1-3-29.jar" 
-          Start-Sleep -Seconds 60
-          Stop-Process -Name "java" -Force
-      - name: Send API Request to Website
-        run: |
-          $apiUrl = "http://localhost:56244/driverVersion"  # Change to your actual API endpoint.
-          Write-Host "Sending API request to $apiUrl..."
-          $response = Invoke-RestMethod -Uri $apiUrl
-          Write-Host "API Response: $response"
+          $chromePath = "C:\Program Files\Google\Chrome\Application\chrome.exe"
+          if (Test-Path $chromePath) {
+            $version = (Get-Command $chromePath).FileVersionInfo.ProductVersion
+            Write-Host "Google Chrome is installed. Version: $version"
+          }
+          else {
+            Write-Error "Google Chrome is not installed."
+            exit 1
+          }
         shell: powershell
-  runi-jar:
-    runs-on: windows-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
 
-      - name: Install Mockoon CLI
-        run: npm install -g @mockoon/cli
-
-      - name: Start Mockoon Mock APIs
+      - name: Download ChromeDriver
         run: |
-          nohup mockoon-cli start --data ./Mockoon/ipt/IPTCoreMockService.json > mockoon_ipt.log 2>&1 &
-          nohup mockoon-cli start --data ./Mockoon/ai-search/clientAiSearchService.json > mockoon_ai.log 2>&1 &
+          $chromePath = "C:\Program Files\Google\Chrome\Application\chrome.exe"
+          $chromeVersion = (Get-Command $chromePath).FileVersionInfo.ProductVersion
+          $chromeMajorVersion = $chromeVersion.Split(".")[0]
+          $chromedriverUrl = "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$chromeMajorVersion"
+          $chromedriverVersion = Invoke-RestMethod -Uri $chromedriverUrl
+          $downloadUrl = "https://chromedriver.storage.googleapis.com/$chromedriverVersion/chromedriver_win32.zip"
+          Invoke-WebRequest -Uri $downloadUrl -OutFile chromedriver.zip
+          Expand-Archive -Path chromedriver.zip -DestinationPath "$env:USERPROFILE\chromedriver"
+        shell: powershell
+
+      - name: Install Selenium for Python
+        run: pip install selenium
+        shell: powershell
+
+      - name: Start JAR File (API Server)
+        run: |
+          Write-Host "Starting the JAR file..."
+          Start-Process -NoNewWindow -FilePath "java" -ArgumentList "-jar NoCodeBDD-V1-3-29.jar"
+          Write-Host "Waiting 30 seconds for the server to start..."
+          Start-Sleep -Seconds 30
+        shell: powershell
+
+      - name: Send API Request via ChromeDriver
+        run: |
+          python - <<'EOF'
+          from selenium import webdriver
+          from selenium.webdriver.chrome.service import Service
+          from selenium.webdriver.chrome.options import Options
+          import time
+
+          # Set up the ChromeDriver service
+          chromedriver_path = r"C:\Users\runneradmin\chromedriver\chromedriver.exe"
+          service = Service(chromedriver_path)
+
+          # Configure Chrome to run headless
+          options = Options()
+          options.add_argument("--headless")
+
+          # Initialize the driver
+          driver = webdriver.Chrome(service=service, options=options)
           
-      - name: Verify Mockoon Processes
-        run: powershell -Command "Get-Process | Where-Object { $_.ProcessName -match 'mockoon' }"
+          # Open the API endpoint in Chrome
+          api_url = "http://localhost:56244/driverVersion"  # Adjust if needed
+          print("Navigating to:", api_url)
+          driver.get(api_url)
+          
+          # Wait a few seconds for page to load (adjust if necessary)
+          time.sleep(5)
+          
+          # Retrieve the page source (or any specific element text)
+          output = driver.page_source
+          print("API Response from website:")
+          print(output)
+          
+          driver.quit()
+          EOF
+        shell: powershell
+
+      - name: Stop JAR File
+        run: |
+          Write-Host "Stopping the JAR file..."
+          Stop-Process -Name "java" -Force
+        shell: powershell
