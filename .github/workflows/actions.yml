@@ -1,11 +1,11 @@
-name: Run JAR and Send API Request via ChromeDriver
+name: Run JAR and Send API Request
 
 on:
   push:
   workflow_dispatch:
 
 jobs:
-  run-jar-and-chrome:
+  run-jar-and-request:
     runs-on: windows-latest
 
     steps:
@@ -14,49 +14,11 @@ jobs:
 
       - name: Install gdown
         run: pip install gdown
+        shell: powershell
 
       - name: Download JAR from Google Drive
-        run: gdown "https://drive.google.com/uc?id=1djtkX3COrLDCGTPPhQ0TBwyYKADDeZzC" -O NoCodeBDD-V1-3-29.jar
-
-      - name: Verify Google Chrome Installation
         run: |
-          $chromePath = "C:\Program Files\Google\Chrome\Application\chrome.exe"
-          if (Test-Path $chromePath) {
-            $version = (Get-Command $chromePath).FileVersionInfo.ProductVersion
-            Write-Host "Google Chrome is installed. Version: $version"
-          }
-          else {
-            Write-Error "Google Chrome is not installed."
-            exit 1
-          }
-        shell: powershell
-
-      - name: Download ChromeDriver with Fallback
-        run: |
-          $chromePath = "C:\Program Files\Google\Chrome\Application\chrome.exe"
-          if (-Not (Test-Path $chromePath)) {
-              Write-Error "Google Chrome is not installed."
-              exit 1
-          }
-          $chromeVersion = (Get-Command $chromePath).FileVersionInfo.ProductVersion
-          Write-Host "Installed Chrome version: $chromeVersion"
-          $chromeMajorVersion = $chromeVersion.Split(".")[0]
-          $chromedriverUrl = "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$chromeMajorVersion"
-          try {
-              $chromedriverVersion = Invoke-RestMethod -Uri $chromedriverUrl
-              Write-Host "Found ChromeDriver version: $chromedriverVersion"
-          } catch {
-              Write-Host "Failed to get ChromeDriver for Chrome version $chromeMajorVersion. Falling back to version 112.0.5615.49."
-              $chromedriverVersion = "112.0.5615.49"
-          }
-          $downloadUrl = "https://chromedriver.storage.googleapis.com/$chromedriverVersion/chromedriver_win32.zip"
-          Write-Host "Downloading ChromeDriver from: $downloadUrl"
-          Invoke-WebRequest -Uri $downloadUrl -OutFile chromedriver.zip
-          Expand-Archive -Path chromedriver.zip -DestinationPath "$env:USERPROFILE\chromedriver"
-        shell: powershell
-
-      - name: Install Selenium for Python
-        run: pip install selenium
+          gdown "https://drive.google.com/uc?id=1djtkX3COrLDCGTPPhQ0TBwyYKADDeZzC" -O NoCodeBDD-V1-3-29.jar
         shell: powershell
 
       - name: Start JAR File (API Server)
@@ -67,40 +29,25 @@ jobs:
           Start-Sleep -Seconds 30
         shell: powershell
 
-      - name: Send API Request via ChromeDriver
+      - name: Send API Request using Python Requests
         run: |
-          python - <<'EOF'
-          from selenium import webdriver
-          from selenium.webdriver.chrome.service import Service
-          from selenium.webdriver.chrome.options import Options
+          $pythonScript = @"
+          import requests
           import time
 
-          # Set up the ChromeDriver service
-          chromedriver_path = r"C:\Users\runneradmin\chromedriver\chromedriver.exe"
-          service = Service(chromedriver_path)
+          api_url = "http://localhost:56244/driverVersion"
+          print(f"Sending request to: {api_url}")
 
-          # Configure Chrome to run headless
-          options = Options()
-          options.add_argument("--headless")
-
-          # Initialize the driver
-          driver = webdriver.Chrome(service=service, options=options)
-          
-          # Open the API endpoint in Chrome
-          api_url = "http://localhost:56244/driverVersion"  # Adjust if needed
-          print("Navigating to:", api_url)
-          driver.get(api_url)
-          
-          # Wait a few seconds for the page to load
-          time.sleep(5)
-          
-          # Retrieve the page source (or extract specific element text if needed)
-          output = driver.page_source
-          print("API Response from website:")
-          print(output)
-          
-          driver.quit()
-          EOF
+          time.sleep(5)  # Wait for the API to stabilize
+          try:
+              response = requests.get(api_url)
+              print("API Response:")
+              print(response.text)
+          except Exception as e:
+              print(f"Failed to reach API: {e}")
+          "@
+          $pythonScript | Out-File -Encoding utf8 script.py
+          python script.py
         shell: powershell
 
       - name: Stop JAR File
