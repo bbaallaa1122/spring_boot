@@ -31,14 +31,26 @@ jobs:
           }
         shell: powershell
 
-      - name: Download ChromeDriver
+      - name: Download ChromeDriver with Fallback
         run: |
           $chromePath = "C:\Program Files\Google\Chrome\Application\chrome.exe"
+          if (-Not (Test-Path $chromePath)) {
+              Write-Error "Google Chrome is not installed."
+              exit 1
+          }
           $chromeVersion = (Get-Command $chromePath).FileVersionInfo.ProductVersion
+          Write-Host "Installed Chrome version: $chromeVersion"
           $chromeMajorVersion = $chromeVersion.Split(".")[0]
           $chromedriverUrl = "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$chromeMajorVersion"
-          $chromedriverVersion = Invoke-RestMethod -Uri $chromedriverUrl
+          try {
+              $chromedriverVersion = Invoke-RestMethod -Uri $chromedriverUrl
+              Write-Host "Found ChromeDriver version: $chromedriverVersion"
+          } catch {
+              Write-Host "Failed to get ChromeDriver for Chrome version $chromeMajorVersion. Falling back to version 112.0.5615.49."
+              $chromedriverVersion = "112.0.5615.49"
+          }
           $downloadUrl = "https://chromedriver.storage.googleapis.com/$chromedriverVersion/chromedriver_win32.zip"
+          Write-Host "Downloading ChromeDriver from: $downloadUrl"
           Invoke-WebRequest -Uri $downloadUrl -OutFile chromedriver.zip
           Expand-Archive -Path chromedriver.zip -DestinationPath "$env:USERPROFILE\chromedriver"
         shell: powershell
@@ -79,10 +91,10 @@ jobs:
           print("Navigating to:", api_url)
           driver.get(api_url)
           
-          # Wait a few seconds for page to load (adjust if necessary)
+          # Wait a few seconds for the page to load
           time.sleep(5)
           
-          # Retrieve the page source (or any specific element text)
+          # Retrieve the page source (or extract specific element text if needed)
           output = driver.page_source
           print("API Response from website:")
           print(output)
