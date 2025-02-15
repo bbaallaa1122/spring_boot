@@ -56,13 +56,6 @@ jobs:
           Expand-Archive -Path chromedriver.zip -DestinationPath "$env:USERPROFILE\chromedriver" -Force
           Write-Host "ChromeDriver installed at: $env:USERPROFILE\chromedriver\chromedriver.exe"
         shell: powershell
-  name: Setup PostgreSQL on Ubuntu
-
-on:
-  push:
-  workflow_dispatch:
-
-jobs:
   setup-postgres:
     runs-on: ubuntu-latest
 
