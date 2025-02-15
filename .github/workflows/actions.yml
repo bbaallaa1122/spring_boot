@@ -47,7 +47,6 @@ jobs:
               Write-Host "Failed to get ChromeDriver for Chrome version $chromeMajorVersion. Falling back to version 112.0.5615.49."
               $chromedriverVersion = "112.0.5615.49"
           }
-
           # Build download URL and download the zip file
           $downloadUrl = "https://chromedriver.storage.googleapis.com/$chromedriverVersion/chromedriver_win32.zip"
           Write-Host "Downloading ChromeDriver from: $downloadUrl"
@@ -57,3 +56,12 @@ jobs:
           Expand-Archive -Path chromedriver.zip -DestinationPath "$env:USERPROFILE\chromedriver" -Force
           Write-Host "ChromeDriver installed at: $env:USERPROFILE\chromedriver\chromedriver.exe"
         shell: powershell
+  setup-postgres:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Update apt packages
+        run: sudo apt-get update
+
+      - name: Install PostgreSQL
+        run: sudo apt-get install -y postgresql postgresql-contrib
