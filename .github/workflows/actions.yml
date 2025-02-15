@@ -65,3 +65,7 @@ jobs:
 
       - name: Install PostgreSQL
         run: sudo apt-get install -y postgresql postgresql-contrib
+
+      - name: Set Password for Postgres User
+        run: |
+          sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'postgres';"
