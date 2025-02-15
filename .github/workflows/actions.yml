@@ -23,7 +23,7 @@ jobs:
           Stop-Process -Name "java" -Force
       - name: Send API Request to Website
         run: |
-          $apiUrl = "http://localhost:8080/api/data"  # Change to your actual API endpoint.
+          $apiUrl = "http://localhost:56244/driverVersion"  # Change to your actual API endpoint.
           Write-Host "Sending API request to $apiUrl..."
           $response = Invoke-RestMethod -Uri $apiUrl
           Write-Host "API Response: $response"
