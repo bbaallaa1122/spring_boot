@@ -1,17 +1,13 @@
 name: Install ChromeDriver on Windows
-
 on:
   push:
   workflow_dispatch:
-
 jobs:
   install-chromedriver:
     runs-on: windows-latest
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-
       - name: Verify Google Chrome Installation
         run: |
           $chromePath = "C:\Program Files\Google\Chrome\Application\chrome.exe"
@@ -24,57 +20,37 @@ jobs:
               exit 1
           }
         shell: powershell
-
       - name: Download and Extract ChromeDriver
         run: |
-          # Define Chrome path and ensure it exists
           $chromePath = "C:\Program Files\Google\Chrome\Application\chrome.exe"
           if (-Not (Test-Path $chromePath)) {
               Write-Error "Google Chrome is not installed."
               exit 1
           }
-          # Get installed Chrome version and extract its major version
           $chromeVersion = (Get-Command $chromePath).FileVersionInfo.ProductVersion
           Write-Host "Installed Chrome version: $chromeVersion"
           $chromeMajorVersion = $chromeVersion.Split(".")[0]
-
-          # Build URL for latest matching ChromeDriver version
           $chromedriverUrl = "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$chromeMajorVersion"
-          try {
-              $chromedriverVersion = Invoke-RestMethod -Uri $chromedriverUrl
-              Write-Host "Found ChromeDriver version: $chromedriverVersion"
-          } catch {
-              Write-Host "Failed to get ChromeDriver for Chrome version $chromeMajorVersion. Falling back to version 112.0.5615.49."
-              $chromedriverVersion = "112.0.5615.49"
-          }
-          # Build download URL and download the zip file
+          $chromedriverVersion = "114.0.5735.90"
           $downloadUrl = "https://chromedriver.storage.googleapis.com/$chromedriverVersion/chromedriver_win32.zip"
           Write-Host "Downloading ChromeDriver from: $downloadUrl"
           Invoke-WebRequest -Uri $downloadUrl -OutFile chromedriver.zip
-
-          # Extract ChromeDriver to a folder in the user's home directory
           Expand-Archive -Path chromedriver.zip -DestinationPath "$env:USERPROFILE\chromedriver" -Force
-          Write-Host "ChromeDriver installed at: $env:USERPROFILE\chromedriver\chromedriver.exe"
         shell: powershell
   setup-postgres:
     runs-on: ubuntu-latest
-
     steps:
       - name: Update apt packages
         run: sudo apt-get update
-
       - name: Install PostgreSQL
         run: sudo apt-get install -y postgresql postgresql-contrib
-
       - name: Start PostgreSQL Service
         run: |
           sudo service postgresql start
           sleep 5
-
       - name: Set Password for Postgres User
         run: |
           sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'postgres';"
-
       - name: Create Database \"client portal\"
         run: |
           sudo -u postgres psql -c "CREATE DATABASE \"client portal\";"
